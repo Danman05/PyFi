@@ -10,8 +10,8 @@ import pandas as pd
 ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('dark-blue')
 root = ctk.CTk()
-root.title("Analysis Tool")
-root.geometry("800x600")
+root.title("Analysis Tool - Daniel Spurrell")
+root.geometry("900x700")
 root.configure(bg="#f0f0f0")
 
 # Initialize a variable to keep track of the image label
@@ -106,8 +106,8 @@ def draw_chart():
         xaxis_rangeslider_visible=False
         
     )
-    # Save the figure as an image file (PNG)
-    pio.write_image(fig, 'candlestick.png')
+    # Save the figure as an image file (PNG) using kaleido image engine instead of orca
+    pio.write_image(fig, 'candlestick.png', engine='kaleido')
 
     # Load the image and keep a reference to it
     candlestick_image = tk.PhotoImage(file="candlestick.png")
