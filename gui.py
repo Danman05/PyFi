@@ -1,7 +1,7 @@
 import tkinter as tk
 import customtkinter as ctk
 from tkinter import messagebox, Toplevel, Scale, ttk, HORIZONTAL
-from symbol import check_stock, symbol_data
+from symbol import check_stock, symbol_data, thresholds
 import plotly.graph_objs as go
 import plotly.io as pio
 import pandas as pd
@@ -20,41 +20,56 @@ image_label = None
 def open_settings():
     settings_window = Toplevel(root)
     settings_window.title("Settings")
-    settings_window.geometry("300x300")
-    settings_window.configure(bg="#f0f0f0")
+    settings_window.geometry("400x500")
+    settings_window.configure(bg="#121212")
     
     def update_thresholds():
-        global pe_ratio_threshold, rsi_threshold, quick_ratio_threshold, current_ratio_threshold
-        pe_ratio_threshold = pe_slider.get()
-        rsi_threshold = rsi_slider.get()
-        quick_ratio_threshold = quick_slider.get()
-        current_ratio_threshold = current_slider.get()
+        global thresholds
+        thresholds["pe_ratio_threshold"] = pe_slider.get()
+        thresholds["rsi_threshold"] = rsi_slider.get()
+        thresholds["quick_ratio_threshold"] = quick_slider.get()
+        thresholds["current_ratio_threshold"] = current_slider.get()
         messagebox.showinfo("Settings", "Thresholds updated successfully!")
-    
+
+    # Function to update slider labels
+    def update_label(label, slider):
+        label.configure(text=f"{slider.get():.2f}")
+
     # PE Ratio Slider
-    tk.Label(settings_window, text="PE Ratio Threshold", bg="#f0f0f0").pack(pady=10)
-    pe_slider = Scale(settings_window, from_=5, to=50, orient=HORIZONTAL, bg="#e0e0e0")
-    pe_slider.set(pe_ratio_threshold)
+    ctk.CTkLabel(settings_window, text="PE Ratio Threshold", bg_color="#121212").pack(pady=10)
+    pe_slider = ctk.CTkSlider(settings_window, from_=5, to=50)
+    pe_slider.set(thresholds.get('pe_ratio_threshold'))
     pe_slider.pack()
+    pe_label = ctk.CTkLabel(settings_window, text=f"{pe_slider.get():.2f}", bg_color="#121212")
+    pe_label.pack(pady=5)
+    pe_slider.configure(command=lambda value: update_label(pe_label, pe_slider))
 
     # RSI Slider
-    tk.Label(settings_window, text="RSI Threshold", bg="#f0f0f0").pack(pady=10)
-    rsi_slider = Scale(settings_window, from_=10, to=70, orient=HORIZONTAL, bg="#e0e0e0")
-    rsi_slider.set(rsi_threshold)
+    ctk.CTkLabel(settings_window, text="RSI Threshold", bg_color="#121212").pack(pady=10)
+    rsi_slider = ctk.CTkSlider(settings_window, from_=10, to=70)
+    rsi_slider.set(thresholds.get("rsi_threshold"))
     rsi_slider.pack()
+    rsi_label = ctk.CTkLabel(settings_window, text=f"{rsi_slider.get():.2f}", bg_color="#121212")
+    rsi_label.pack(pady=5)
+    rsi_slider.configure(command=lambda value: update_label(rsi_label, rsi_slider))
 
     # Quick Ratio Slider
-    tk.Label(settings_window, text="Quick Ratio Threshold", bg="#f0f0f0").pack(pady=10)
-    quick_slider = Scale(settings_window, from_=0.5, to=3.0, resolution=0.1, orient=HORIZONTAL, bg="#e0e0e0")
-    quick_slider.set(quick_ratio_threshold)
+    ctk.CTkLabel(settings_window, text="Quick Ratio Threshold", bg_color="#121212").pack(pady=10)
+    quick_slider = ctk.CTkSlider(settings_window, from_=0.5, to=3.0, number_of_steps=25)
+    quick_slider.set(thresholds.get("quick_ratio_threshold"))
     quick_slider.pack()
+    quick_label = ctk.CTkLabel(settings_window, text=f"{quick_slider.get():.2f}", bg_color="#121212")
+    quick_label.pack(pady=5)
+    quick_slider.configure(command=lambda value: update_label(quick_label, quick_slider))
 
     # Current Ratio Slider
-    tk.Label(settings_window, text="Current Ratio Threshold", bg="#f0f0f0").pack(pady=10)
-    current_slider = Scale(settings_window, from_=0.5, to=3.0, resolution=0.1, orient=HORIZONTAL, bg="#e0e0e0")
-    current_slider.set(current_ratio_threshold)
+    ctk.CTkLabel(settings_window, text="Current Ratio Threshold", bg_color="#121212").pack(pady=10)
+    current_slider = ctk.CTkSlider(settings_window, from_=0.5, to=3.0, number_of_steps=25)
+    current_slider.set(thresholds.get("current_ratio_threshold"))
     current_slider.pack()
-
+    current_label = ctk.CTkLabel(settings_window, text=f"{current_slider.get():.2f}", bg_color="#121212")
+    current_label.pack(pady=5)
+    current_slider.configure(command=lambda value: update_label(current_label, current_slider))
     # Update Button
     tk.Button(settings_window, text="Update Thresholds", bg="#007BFF", fg="white", command=update_thresholds).pack(pady=20)
 
@@ -65,7 +80,6 @@ def on_check_stock():
 
 def draw_chart():
     global image_label  # Use global to modify the reference
-    print("drawing chart")
     symbol = symbol_entry.get().upper()
     time_frame = date_frame_combo.get()
 

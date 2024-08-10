@@ -5,8 +5,16 @@ import json
 
 
 # Define parameters for your strategy
-pe_ratio_threshold = 20  # Stocks with a P/E ratio below this are considered undervalued
-rsi_threshold = 30        # RSI below 30 indicates oversold conditions
+
+thresholds = {
+    "pe_ratio_threshold": 20, # Stocks with a P/E ratio below this are considered undervalued.
+    "rsi_threshold": 30, # RSI below 30 indicates oversold conditions.
+    "current_ratio_threshold": 1, # Current Ratio above 1.5 is usually seen as a good sign of liquidity.
+    "quick_ratio_threshold": 1, # Quick Ratio above 1.0 is generally considered a good indicator of financial health.
+    "roe_threshold": 0,
+    "gross_margin_threshold": 0
+}
+
 # Create a list to store potential buying opportunities
 buying_opportunities = []
 
@@ -24,8 +32,8 @@ def check_stock(symbol):
         # other_data = yf.download(symbol, period="1mo")
         # Check if data was retrieved correctly
         if data.empty:
-            print(f"No historical data found for {symbol}")
-            return f"No historical data found for {symbol}"
+            print(f"No historical data found for {symbol} | Not older than a year")
+            return f"No historical data found for {symbol} | Not older than a year"
         # Calculate RSI
         data['RSI'] = ta.momentum.RSIIndicator(data['Close']).rsi()
         # Get the latest available data
@@ -49,12 +57,18 @@ def check_stock(symbol):
             print(f"RSI data is missing or incomplete for {symbol}")
             return f"RSI data is missing or incomplete for {symbol}"
         
+        bool_pe_ratio = pe_ratio < thresholds.get("pe_ratio_threshold")
+        bool_current_ratio = current_ratio > thresholds.get("current_ratio_threshold")
+        bool_quick_ratio = quick_ratio > thresholds.get("quick_ratio_threshold")
+        bool_roe = roe > thresholds.get("roe_threshold")
+        bool_gross_margin = gross_margin > thresholds.get("gross_margin_threshold")
         # Evaluate the financial health
-        if (pe_ratio < pe_ratio_threshold and
-            current_ratio is not None and current_ratio > 1 and
-            quick_ratio is not None and quick_ratio > 1 and
-            roe is not None and roe > 0 and
-            gross_margin is not None and gross_margin > 0):
+        financial_data = f"Symbol: {symbol}\nPE Ratio: {pe_ratio}\nRSI: {latest_rsi}\nCurrent Ratio: {current_ratio}\nQuick Ratio: {quick_ratio}\nROE: {roe}\nGross Margin: {gross_margin}"
+        if (bool_pe_ratio and
+            bool_current_ratio and
+            bool_quick_ratio and
+            bool_roe and
+            bool_gross_margin):
 
             buying_opportunities.append({
                 'Symbol': symbol,
@@ -65,8 +79,10 @@ def check_stock(symbol):
                 'ROE': roe,
                 'Gross Margin': gross_margin,
             })
-            result = f"Symbol: {symbol}\nPE Ratio: {pe_ratio}\nRSI: {latest_rsi}\nCurrent Ratio: {current_ratio}\nQuick Ratio: {quick_ratio}\nROE: {roe}\nGross Margin: {gross_margin}"
+            result = f"Requirements are met\n{financial_data}"
             return result
+        else:
+            return f"Requirements are not met\n{financial_data}"
             
     except Exception as e:
         print(f"Error checking {symbol}: {e}")
