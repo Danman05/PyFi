@@ -63,7 +63,7 @@ def check_stock(symbol):
         bool_roe = roe > thresholds.get("roe_threshold")
         bool_gross_margin = gross_margin > thresholds.get("gross_margin_threshold")
         # Evaluate the financial health
-        financial_data = f"Symbol: {symbol}\nPE Ratio: {pe_ratio}\nRSI: {latest_rsi}\nCurrent Ratio: {current_ratio}\nQuick Ratio: {quick_ratio}\nROE: {roe}\nGross Margin: {gross_margin}"
+        
         if (bool_pe_ratio and
             bool_current_ratio and
             bool_quick_ratio and
@@ -79,10 +79,19 @@ def check_stock(symbol):
                 'ROE': roe,
                 'Gross Margin': gross_margin,
             })
-            result = f"Requirements are met\n{financial_data}"
-            return result
-        else:
-            return f"Requirements are not met\n{financial_data}"
+
+        financial_data = (
+            f"Symbol {symbol:>20}\n"
+            f"PE Ratio: {round(pe_ratio, 2):>18} {'✅' if bool_pe_ratio else '❌':>5}\n"
+            f"Current Ratio: {round(current_ratio, 2):>10} {'✅' if bool_current_ratio else '❌':>5}\n"
+            f"Quick Ratio: {round(quick_ratio, 2):>12} {'✅' if bool_quick_ratio else '❌':>5}\n"
+            f"ROE: {round(roe, 2):>26} {'✅' if bool_roe else '❌':>5}\n"
+            f"Gross Margin: {round(gross_margin, 2):>9} {'✅' if bool_gross_margin else '❌':>5}\n"
+            f"\nIndicators\n"
+            f"RSI: {round(latest_rsi, 2):>28}"
+        )
+    
+        return financial_data
             
     except Exception as e:
         print(f"Error checking {symbol}: {e}")

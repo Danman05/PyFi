@@ -16,14 +16,10 @@ root.configure(bg="#f0f0f0")
 
 # Initialize a variable to keep track of the image label
 image_label = None
-tab_view = ctk.CTkTabview(root,
-                          width=800,
-                          height=200)
+tab_view = ctk.CTkTabview(root)
 tab_1 = tab_view.add("Chart")
 tab_2 = tab_view.add("Financials")
-
-ctk.CTkButton(tab_2, text="button").pack(pady=10)
-
+tab_3 = tab_view.add("Screener")
 tab_view.pack()
 def open_settings():
     settings_window = Toplevel(root)
@@ -82,10 +78,11 @@ def open_settings():
     tk.Button(settings_window, text="Update Thresholds", bg="#007BFF", fg="white", command=update_thresholds).pack(pady=20)
 
 def on_check_stock():
+    global fin_data_label
     symbol = symbol_entry.get().upper()
     draw_chart()
-    messagebox.showinfo("Analysis Result", check_stock(symbol))
-
+    fin_data = check_stock(symbol)
+    fin_data_label.configure(text=fin_data)
 def draw_chart():
     global image_label  # Use global to modify the reference
     symbol = symbol_entry.get().upper()
@@ -144,11 +141,16 @@ def draw_chart():
     # Ensure the image reference is kept
     image_label.image = candlestick_image
 
+
+
+# Tab 1
+
 # Input field for the stock symbol
 symbol_label = ctk.CTkLabel(tab_1, text="Enter Ticker:", font=("Roboto", 12))
 symbol_label.pack(pady=10)
 
 symbol_entry = ctk.CTkEntry(tab_1, font=("Roboto", 14))
+symbol_entry.insert(0,"AAPL")
 symbol_entry.pack(pady=5)
 
 date_frame_combo = ctk.CTkComboBox(tab_1, state='readonly', values=['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', 'ytd', 'max'])
@@ -160,8 +162,14 @@ check_button = ctk.CTkButton(tab_1, text="Check Stock", font=("Roboto", 12), com
 check_button.pack(pady=20)
 
 # Settings button in the top-right corner
-settings_button = ctk.CTkButton(tab_1, text="⚙", font=("Roboto", 10), width=50, command=open_settings)
-settings_button.place(relx=1.0, rely=0.0, anchor="ne", x=-20)
+settings_button = ctk.CTkButton(root, text="⚙", font=("Roboto", 10), width=50, command=open_settings)
+settings_button.place(relx=1.0, rely=0.0, anchor="ne", x=-20, y=10)
+
+
+# Tab 2
+
+fin_data_label = ctk.CTkLabel(tab_2, text="Enter ticker and results will appear here", anchor="w", justify="left",)
+fin_data_label.pack()
 
 # Run the application
 root.mainloop()
