@@ -11,12 +11,20 @@ ctk.set_appearance_mode('dark')
 ctk.set_default_color_theme('dark-blue')
 root = ctk.CTk()
 root.title("Analysis Tool - Daniel Spurrell")
-root.geometry("900x700")
+root.geometry("1024x768")
 root.configure(bg="#f0f0f0")
 
 # Initialize a variable to keep track of the image label
 image_label = None
+tab_view = ctk.CTkTabview(root,
+                          width=800,
+                          height=200)
+tab_1 = tab_view.add("Chart")
+tab_2 = tab_view.add("Financials")
 
+ctk.CTkButton(tab_2, text="button").pack(pady=10)
+
+tab_view.pack()
 def open_settings():
     settings_window = Toplevel(root)
     settings_window.title("Settings")
@@ -130,30 +138,30 @@ def draw_chart():
     if image_label:
         image_label.config(image=candlestick_image)
     else:
-        image_label = tk.Label(root, image=candlestick_image, text="")
+        image_label = tk.Label(tab_1, image=candlestick_image, text="")
         image_label.pack()
 
     # Ensure the image reference is kept
     image_label.image = candlestick_image
 
 # Input field for the stock symbol
-symbol_label = ctk.CTkLabel(root, text="Enter Ticker:", font=("Roboto", 12))
+symbol_label = ctk.CTkLabel(tab_1, text="Enter Ticker:", font=("Roboto", 12))
 symbol_label.pack(pady=10)
 
-symbol_entry = ctk.CTkEntry(root, font=("Roboto", 14))
+symbol_entry = ctk.CTkEntry(tab_1, font=("Roboto", 14))
 symbol_entry.pack(pady=5)
 
-date_frame_combo = ctk.CTkComboBox(root, state='readonly', values=['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', 'ytd', 'max'])
-date_frame_combo.set('1y')
+date_frame_combo = ctk.CTkComboBox(tab_1, state='readonly', values=['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', 'ytd', 'max'])
+date_frame_combo.set('ytd')
 date_frame_combo.pack()
 
 # Button to trigger the stock check
-check_button = ctk.CTkButton(root, text="Check Stock", font=("Roboto", 12), command=on_check_stock)
+check_button = ctk.CTkButton(tab_1, text="Check Stock", font=("Roboto", 12), command=on_check_stock)
 check_button.pack(pady=20)
 
 # Settings button in the top-right corner
-settings_button = ctk.CTkButton(root, text="⚙ Settings", font=("Roboto", 10), command=open_settings)
-settings_button.place(relx=1.0, rely=0.0, anchor="ne", x=-10, y=10)
+settings_button = ctk.CTkButton(tab_1, text="⚙", font=("Roboto", 10), width=50, command=open_settings)
+settings_button.place(relx=1.0, rely=0.0, anchor="ne", x=-20)
 
 # Run the application
 root.mainloop()
