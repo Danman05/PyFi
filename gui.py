@@ -1,7 +1,14 @@
 import tkinter as tk
 import customtkinter as ctk
 from tkinter import messagebox, Toplevel
-from symbol import check_stock, fetch_symbol_data, THRESHOLDS, get_count_of_filtered_symbols, save_opportunities_to_csv, scan_symbols
+from symbol import (
+    THRESHOLDS,
+    check_stock, 
+    fetch_symbol_data,
+    get_count_of_filtered_symbols, 
+    scan_symbols,
+    save_opportunities_to_csv,
+    )
 import plotly.graph_objs as go
 import plotly.io as pio
 import pandas as pd
