@@ -13,3 +13,5 @@ pip install -r requirements.txt
 ```console
 python gui.py
 ```
+
+![alt text](/assets/repo/project-image.png)
