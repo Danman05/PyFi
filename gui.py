@@ -1,7 +1,7 @@
 import tkinter as tk
 import customtkinter as ctk
 from tkinter import messagebox, Toplevel
-from symbol import (
+from symbol  import (
     THRESHOLDS,
     check_stock, 
     fetch_symbol_data,
@@ -14,6 +14,10 @@ import plotly.io as pio
 import pandas as pd
 import threading
 import logging
+from const import _ALLOWED_PERIODS_
+
+from GUI.settings_component import open_settings
+from Evaluator import Evaluator
 
 # Initialize tkinter window
 ctk.set_appearance_mode('dark')
@@ -28,6 +32,8 @@ logging.basicConfig(
     format='%(asctime)s: %(levelname)s: %(message)s',
     level=logging.INFO
 )
+
+evaluator = Evaluator()
 
 # Initialize a variable to keep track of the image label
 image_label = None
@@ -52,61 +58,6 @@ selected_location = ctk.StringVar(value=locations[0])
 selected_exchange = ctk.StringVar()
 
 global fin_data_label
-
-def open_settings():
-    settings_window = Toplevel(root)
-    settings_window.title("Settings")
-    settings_window.geometry("400x500")
-    settings_window.configure(bg="#121212")
-    
-    def update_thresholds():
-        global THRESHOLDS
-        THRESHOLDS["rsi_threshold"] = rsi_slider.get()
-        THRESHOLDS["quick_ratio_threshold"] = quick_slider.get()
-        THRESHOLDS["current_ratio_threshold"] = current_slider.get()
-        messagebox.showinfo("Settings", "Thresholds updated successfully!")
-
-    # Function to update slider labels
-    def update_label(label, slider):
-        label.configure(text=f"{slider.get():.2f}")
-
-    # PE Ratio Slider
-    ctk.CTkLabel(settings_window, text="PE Ratio Threshold", bg_color="#121212").pack(pady=10)
-    pe_slider = ctk.CTkSlider(settings_window, from_=5, to=50)
-    pe_slider.set(THRESHOLDS.get('pe_ratio_threshold'))
-    pe_slider.pack()
-    pe_label = ctk.CTkLabel(settings_window, text=f"{pe_slider.get():.2f}", bg_color="#121212")
-    pe_label.pack(pady=5)
-    pe_slider.configure(command=lambda value: update_label(pe_label, pe_slider))
-
-    # RSI Slider
-    ctk.CTkLabel(settings_window, text="RSI Threshold", bg_color="#121212").pack(pady=10)
-    rsi_slider = ctk.CTkSlider(settings_window, from_=10, to=70)
-    rsi_slider.set(THRESHOLDS.get("rsi_threshold"))
-    rsi_slider.pack()
-    rsi_label = ctk.CTkLabel(settings_window, text=f"{rsi_slider.get():.2f}", bg_color="#121212")
-    rsi_label.pack(pady=5)
-    rsi_slider.configure(command=lambda value: update_label(rsi_label, rsi_slider))
-
-    # Quick Ratio Slider
-    ctk.CTkLabel(settings_window, text="Quick Ratio Threshold", bg_color="#121212").pack(pady=10)
-    quick_slider = ctk.CTkSlider(settings_window, from_=0.5, to=3.0, number_of_steps=25)
-    quick_slider.set(THRESHOLDS.get("quick_ratio_threshold"))
-    quick_slider.pack()
-    quick_label = ctk.CTkLabel(settings_window, text=f"{quick_slider.get():.2f}", bg_color="#121212")
-    quick_label.pack(pady=5)
-    quick_slider.configure(command=lambda value: update_label(quick_label, quick_slider))
-
-    # Current Ratio Slider
-    ctk.CTkLabel(settings_window, text="Current Ratio Threshold", bg_color="#121212").pack(pady=10)
-    current_slider = ctk.CTkSlider(settings_window, from_=0.5, to=3.0, number_of_steps=25)
-    current_slider.set(THRESHOLDS.get("current_ratio_threshold"))
-    current_slider.pack()
-    current_label = ctk.CTkLabel(settings_window, text=f"{current_slider.get():.2f}", bg_color="#121212")
-    current_label.pack(pady=5)
-    current_slider.configure(command=lambda value: update_label(current_label, current_slider))
-    # Update Button
-    tk.Button(settings_window, text="Update Thresholds", bg="#007BFF", fg="white", command=update_thresholds).pack(pady=20)
 
 def on_check_stock():
     global fin_data_label
@@ -208,7 +159,7 @@ def scan_exchange_symbols(location, exchange):
     scan_thread.start()
     run_on_thread(wait_for_thread, scan_thread ).start()
 
-def wait_for_thread(thread):
+def wait_for_thread(thread: threading.Thread):
     thread.join()
     set_scan_count()
     save_to_csv_button.pack(pady=10)
@@ -224,7 +175,7 @@ symbol_entry = ctk.CTkEntry(tab_1, font=("Roboto", 14))
 symbol_entry.insert(0,"AAPL")
 symbol_entry.pack(pady=5)
 
-date_frame_combo = ctk.CTkComboBox(tab_1, state='readonly', values=['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', 'ytd', 'max'])
+date_frame_combo = ctk.CTkComboBox(tab_1, state='readonly', values=_ALLOWED_PERIODS_)
 date_frame_combo.set('ytd')
 date_frame_combo.pack()
 
@@ -233,7 +184,7 @@ check_button = ctk.CTkButton(tab_1, text="Check Stock", font=("Roboto", 12), com
 check_button.pack(pady=20)
 
 # Settings button in the top-right corner
-settings_button = ctk.CTkButton(root, text="⚙", font=("Roboto", 10), width=50, command=open_settings)
+settings_button = ctk.CTkButton(root, text="⚙", font=("Roboto", 10), width=50, command= lambda: open_settings(root, evaluator))
 settings_button.place(relx=1.0, rely=0.0, anchor="ne", x=-20, y=10)
 
 # Tab 2
