@@ -1,6 +1,6 @@
 import yfinance as yf
 
-def fetch_ticker(ticker):
+def fetch_ticker(ticker: str):
     """
     Creates ticker object. - Does not make a network request
 
@@ -16,7 +16,7 @@ def fetch_ticker(ticker):
     except Exception as e:
         raise ValueError(f"Failed to fetch data for ticker {ticker}: {e}")
 
-def fetch_ticker_history(ticker, period):
+def fetch_ticker_history(ticker, period = 'ytd'):
     """
     Fetches ticker history using yfinance.
 

@@ -1,7 +1,7 @@
-from tkinter import Toplevel, messagebox
+from tkinter import Toplevel
 import customtkinter as ctk
-
-def open_settings(root, evaluator):
+from evaluator import Evaluator
+def open_settings(root, evaluator: Evaluator):
     settings_window = Toplevel(root)
     settings_window.title("Settings")
     settings_window.geometry("400x600")
@@ -11,11 +11,11 @@ def open_settings(root, evaluator):
         evaluator.set_threshold("rsi_threshold", rsi_slider.get())
         evaluator.set_threshold("quick_ratio_threshold", quick_slider.get())
         evaluator.set_threshold("current_ratio_threshold", current_slider.get())
-        evaluator.set_threshold("pe_ratio_threshold", pe_slider.get())
+        evaluator.set_threshold("forward_pe_threshold", pe_slider.get())
 
     def reset_thresholds():
         evaluator.set_default_threshold()
-        pe_slider.set(evaluator.get_threshold(key='pe_ratio_threshold'))
+        pe_slider.set(evaluator.get_threshold(key='forward_pe_threshold'))
         rsi_slider.set(evaluator.get_threshold(key='rsi_threshold'))
         quick_slider.set(evaluator.get_threshold(key='quick_ratio_threshold'))
         current_slider.set(evaluator.get_threshold(key='current_ratio_threshold'))
@@ -31,7 +31,7 @@ def open_settings(root, evaluator):
     # PE Ratio Slider
     ctk.CTkLabel(settings_window, text="PE Ratio Threshold", bg_color="#121212").pack(pady=10)
     pe_slider = ctk.CTkSlider(settings_window, from_=5, to=50)
-    pe_slider.set(evaluator.get_threshold(key='pe_ratio_threshold'))
+    pe_slider.set(evaluator.get_threshold(key='forward_pe_threshold'))
     pe_slider.pack()
     pe_label = ctk.CTkLabel(settings_window, text=f"{pe_slider.get():.2f}", bg_color="#121212")
     pe_label.pack(pady=5)

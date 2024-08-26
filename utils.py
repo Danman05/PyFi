@@ -2,7 +2,7 @@ from const import _ALLOWED_PERIODS_
 
 def validate_period(period):
     """
-    Validates if the provided period is allowed.
+    Validates if the provided period is an allowed time period.
 
     Args:
         period (str): The period to validate.
