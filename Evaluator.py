@@ -67,7 +67,7 @@ class Evaluator:
         ticker = Ticker(ticker)
         is_ticker_valid = self.is_valid(ticker)
         if is_ticker_valid is not True:
-            return "This ticker does not include required"
+            return "This ticker does not include required data"
         
         # Evaluate data against thresholds
         bool_pe_ratio = ticker.forward_pe < self.thresholds['forward_pe_threshold']
