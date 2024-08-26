@@ -1,19 +1,22 @@
 import tkinter as tk
 import customtkinter as ctk
-from tkinter import messagebox, Toplevel
-from symbol import (
-    THRESHOLDS,
-    check_stock, 
-    fetch_symbol_data,
-    get_count_of_filtered_symbols, 
-    scan_symbols,
-    save_opportunities_to_csv,
-    )
 import plotly.graph_objs as go
 import plotly.io as pio
 import pandas as pd
 import threading
 import logging
+
+
+# Workspace imports
+
+from GUI.settings_component import open_settings
+
+from const import _SYMBOL_LOCATIONS_, _SYMBOL_EXCHANGES_, _ALLOWED_PERIODS_
+
+from ticker import Ticker
+from scanner import Scanner
+from evaluator import Evaluator
+from symbol_fetcher import get_count_of_filtered_symbols
 
 # Initialize tkinter window
 ctk.set_appearance_mode('dark')
@@ -24,10 +27,13 @@ root.geometry("1024x768")
 root.configure(bg="#f0f0f0")
 
 logging.basicConfig(
-    filename="PyLog.txt",
+    filename="Log.txt",
     format='%(asctime)s: %(levelname)s: %(message)s',
     level=logging.INFO
 )
+
+evaluator = Evaluator()
+scanner = Scanner()
 
 # Initialize a variable to keep track of the image label
 image_label = None
@@ -37,95 +43,43 @@ tab_view = ctk.CTkTabview(root)
 tab_1 = tab_view.add("Chart")
 tab_2 = tab_view.add("Financials")
 tab_3 = tab_view.add("Scanner")
+
 tab_view.pack()
 
 # Define options for locations and exchanges
-locations = ["Debug", "America"]
+locations = _SYMBOL_LOCATIONS_
 
-exchanges = {
-    "Debug": ["DEBUG"],
-    "America": ["NASDAQ", "NYSE"],
-}
+exchanges = _SYMBOL_EXCHANGES_
 
 # Variable to store the selected location and exchange
 selected_location = ctk.StringVar(value=locations[0])
 selected_exchange = ctk.StringVar()
 
-global fin_data_label
 
-def open_settings():
-    settings_window = Toplevel(root)
-    settings_window.title("Settings")
-    settings_window.geometry("400x500")
-    settings_window.configure(bg="#121212")
-    
-    def update_thresholds():
-        global THRESHOLDS
-        THRESHOLDS["rsi_threshold"] = rsi_slider.get()
-        THRESHOLDS["quick_ratio_threshold"] = quick_slider.get()
-        THRESHOLDS["current_ratio_threshold"] = current_slider.get()
-        messagebox.showinfo("Settings", "Thresholds updated successfully!")
-
-    # Function to update slider labels
-    def update_label(label, slider):
-        label.configure(text=f"{slider.get():.2f}")
-
-    # PE Ratio Slider
-    ctk.CTkLabel(settings_window, text="PE Ratio Threshold", bg_color="#121212").pack(pady=10)
-    pe_slider = ctk.CTkSlider(settings_window, from_=5, to=50)
-    pe_slider.set(THRESHOLDS.get('pe_ratio_threshold'))
-    pe_slider.pack()
-    pe_label = ctk.CTkLabel(settings_window, text=f"{pe_slider.get():.2f}", bg_color="#121212")
-    pe_label.pack(pady=5)
-    pe_slider.configure(command=lambda value: update_label(pe_label, pe_slider))
-
-    # RSI Slider
-    ctk.CTkLabel(settings_window, text="RSI Threshold", bg_color="#121212").pack(pady=10)
-    rsi_slider = ctk.CTkSlider(settings_window, from_=10, to=70)
-    rsi_slider.set(THRESHOLDS.get("rsi_threshold"))
-    rsi_slider.pack()
-    rsi_label = ctk.CTkLabel(settings_window, text=f"{rsi_slider.get():.2f}", bg_color="#121212")
-    rsi_label.pack(pady=5)
-    rsi_slider.configure(command=lambda value: update_label(rsi_label, rsi_slider))
-
-    # Quick Ratio Slider
-    ctk.CTkLabel(settings_window, text="Quick Ratio Threshold", bg_color="#121212").pack(pady=10)
-    quick_slider = ctk.CTkSlider(settings_window, from_=0.5, to=3.0, number_of_steps=25)
-    quick_slider.set(THRESHOLDS.get("quick_ratio_threshold"))
-    quick_slider.pack()
-    quick_label = ctk.CTkLabel(settings_window, text=f"{quick_slider.get():.2f}", bg_color="#121212")
-    quick_label.pack(pady=5)
-    quick_slider.configure(command=lambda value: update_label(quick_label, quick_slider))
-
-    # Current Ratio Slider
-    ctk.CTkLabel(settings_window, text="Current Ratio Threshold", bg_color="#121212").pack(pady=10)
-    current_slider = ctk.CTkSlider(settings_window, from_=0.5, to=3.0, number_of_steps=25)
-    current_slider.set(THRESHOLDS.get("current_ratio_threshold"))
-    current_slider.pack()
-    current_label = ctk.CTkLabel(settings_window, text=f"{current_slider.get():.2f}", bg_color="#121212")
-    current_label.pack(pady=5)
-    current_slider.configure(command=lambda value: update_label(current_label, current_slider))
-    # Update Button
-    tk.Button(settings_window, text="Update Thresholds", bg="#007BFF", fg="white", command=update_thresholds).pack(pady=20)
+global fin_data_label 
 
 def on_check_stock():
-    global fin_data_label
-    symbol = symbol_entry.get().upper()
-    draw_chart()
-    fin_data = check_stock(symbol)
-    fin_data_label.configure(text=fin_data)
 
-def run_on_thread(target_function, *args, **kwargs):
+    global fin_data_label
+
+    symbol = symbol_entry.get().upper()
+    time_period = date_frame_combo.get()
+
+    ticker = Ticker(ticker=symbol, history_period=time_period, skip_info=True)
+    draw_chart(ticker.history)
+
+    symbol_report = evaluator.generate_report(symbol)
+    fin_data_label.configure(text=symbol_report)
+
+def create_thread(target_function, *args, **kwargs):
     return threading.Thread(target=target_function, args=args, kwargs=kwargs)
 
-def draw_chart():
+def draw_chart(ticker_history):
     global image_label  # Use global to modify the reference
-    symbol = symbol_entry.get().upper()
-    time_frame = date_frame_combo.get()
 
     # Create the candlestick chart
-    candle_data = fetch_symbol_data(ticker=symbol, period=time_frame)
-    dates = pd.to_datetime(candle_data.index.values).strftime('%Y-%m-%d').tolist()
+    candle_data = ticker_history
+    dates = pd.to_datetime(ticker_history.index.values).strftime('%Y-%m-%d').tolist()
 
     # Create the candlestick chart
     fig = go.Figure(
@@ -144,6 +98,9 @@ def draw_chart():
         plot_bgcolor='black',  # Background color of the plotting area
         paper_bgcolor='black', # Background color of the entire figure
         xaxis=dict(
+            rangebreaks=[
+                dict(bounds=["sat", "mon"]), #Hide weekends
+            ],
             showgrid=False,  # Hide the grid lines
             zeroline=False,  # Hide the zero line
             showticklabels=True,
@@ -160,11 +117,12 @@ def draw_chart():
         xaxis_rangeslider_visible=False
         
     )
+    file_location = 'assets/src/candlestick.png'
     # Save the figure as an image file (PNG) using kaleido image engine instead of orca
-    pio.write_image(fig, 'candlestick.png', engine='kaleido')
+    pio.write_image(fig, file_location, engine='kaleido')
 
     # Load the image and keep a reference to it
-    candlestick_image = tk.PhotoImage(file="candlestick.png")
+    candlestick_image = tk.PhotoImage(file=file_location)
     
     # If an image_label already exists, update it; otherwise, create a new one
     if image_label:
@@ -184,7 +142,7 @@ def open_file_dialog():
         # Define the file path using the selected directory
         file_path = f"{directory}/buying_opportunities.csv"
 
-        save_opportunities_to_csv(file_path)
+        evaluator.save_opportunities_to_csv(file_path)
         logging.info(f"CSV file saved to {file_path}")
 
 # Function to update exchange options based on the selected location
@@ -202,16 +160,23 @@ def set_scan_count(*args):
     scan_button.configure(text=f'Scan {count} symbols', command= lambda: scan_exchange_symbols(location, exchange))
 
 def scan_exchange_symbols(location, exchange):
+
+    def wait_for_thread(thread: threading.Thread):
+        thread.join()
+        set_scan_count()
+        save_to_csv_button.pack(pady=10)
+
+
     save_to_csv_button.pack_forget()
     scan_button.configure(text="Scanning - This might take some time", command=None)
-    scan_thread = run_on_thread(scan_symbols, scan_location=location, exchange=exchange)
-    scan_thread.start()
-    run_on_thread(wait_for_thread, scan_thread ).start()
 
-def wait_for_thread(thread):
-    thread.join()
-    set_scan_count()
-    save_to_csv_button.pack(pady=10)
+    # Create thread that scans all possible symbols
+    scan_thread = create_thread(scanner.scan_symbols, scan_location=location, exchange=exchange, evaluator=evaluator)
+    scan_thread.start()
+
+    # Create another thread that waits for the scanning thread, prevents UI from blocking.
+    # There might be a better way to handle this without blocking UI, but this is the way for now
+    create_thread(wait_for_thread, scan_thread).start()
 
 
 # Tab 1
@@ -224,16 +189,16 @@ symbol_entry = ctk.CTkEntry(tab_1, font=("Roboto", 14))
 symbol_entry.insert(0,"AAPL")
 symbol_entry.pack(pady=5)
 
-date_frame_combo = ctk.CTkComboBox(tab_1, state='readonly', values=['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', 'ytd', 'max'])
+date_frame_combo = ctk.CTkComboBox(tab_1, state='readonly', values=_ALLOWED_PERIODS_)
 date_frame_combo.set('ytd')
 date_frame_combo.pack()
 
 # Button to trigger the stock check
-check_button = ctk.CTkButton(tab_1, text="Check Stock", font=("Roboto", 12), command=lambda: run_on_thread(on_check_stock).start())
+check_button = ctk.CTkButton(tab_1, text="Check Stock", font=("Roboto", 12), command=lambda: create_thread(on_check_stock).start())
 check_button.pack(pady=20)
 
 # Settings button in the top-right corner
-settings_button = ctk.CTkButton(root, text="⚙", font=("Roboto", 10), width=50, command=open_settings)
+settings_button = ctk.CTkButton(root, text="⚙", font=("Roboto", 10), width=50, command= lambda: open_settings(root, evaluator))
 settings_button.place(relx=1.0, rely=0.0, anchor="ne", x=-20, y=10)
 
 # Tab 2
@@ -253,7 +218,8 @@ selected_location.trace_add(['write'], update_exchanges)
 # Create the second select box (Exchange)
 exchange_menu = ctk.CTkOptionMenu(tab_3, variable=selected_exchange)
 exchange_menu.pack(pady=20)
-selected_exchange.trace_add(['write'], lambda *args: run_on_thread(set_scan_count).start())
+
+selected_exchange.trace_add(['write'], lambda *args: create_thread(set_scan_count).start())
 
 scan_button = ctk.CTkButton(tab_3, text='Gathering information...')
 scan_button.pack(pady=10)
