@@ -44,17 +44,21 @@ class Evaluator:
                 evaluation['quickRatio'] and
                 evaluation['returnOnEquity'] and
                 evaluation['grossMargins']):
-
                 data = ({
                     'Symbol': ticker.base.ticker,
-                    'PE Ratio': ticker.forward_pe,
+                    'Forward PE': ticker.forward_pe,
                     'Current Ratio': ticker.current_ratio,
                     'Quick Ratio': ticker.quick_ratio,
                     'ROE': ticker.roe,
                     'Gross Margin': ticker.gross_margin,
                     'RSI': rsi,
-                    'Market Cap': ticker.market_cap
+                    'Cash': ticker.total_cash,
+                    'Dept': ticker.total_debt,
+                    'Market Cap': ticker.market_cap,
+                    'Sector': ticker.sector,
+                    'Summary': ticker.long_business_summary,     
                 })
+                print(f'Buy: {ticker.base.ticker} Sector: {ticker.sector}')
                 self.buying_opportunities.append(data)
             return None
         
@@ -80,7 +84,7 @@ class Evaluator:
 
         report = (
             f"Symbol {ticker.base.ticker:>20}\n"
-            f"PE Ratio: {round(ticker.forward_pe, 2):>18} {'✅' if bool_pe_ratio else '❌':>5}\n"
+            f"Forward PE: {round(ticker.forward_pe, 2):>18} {'✅' if bool_pe_ratio else '❌':>5}\n"
             f"Current Ratio: {round(ticker.current_ratio, 2):>10} {'✅' if bool_current_ratio else '❌':>5}\n"
             f"Quick Ratio: {round(ticker.quick_ratio, 2):>12} {'✅' if bool_quick_ratio else '❌':>5}\n"
             f"ROE: {round(ticker.roe, 2):>26} {'✅' if bool_roe else '❌':>5}\n"
