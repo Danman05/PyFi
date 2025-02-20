@@ -179,7 +179,7 @@ def scan_exchange_symbols(location, exchange):
     create_thread(wait_for_thread, scan_thread).start()
 
 
-# Tab 1
+# region Tab 1 Charting
 
 # Input field for the stock symbol
 symbol_label = ctk.CTkLabel(tab_1, text="Enter Ticker:", font=("Roboto", 12))
@@ -200,13 +200,15 @@ check_button.pack(pady=20)
 # Settings button in the top-right corner
 settings_button = ctk.CTkButton(root, text="⚙", font=("Roboto", 10), width=50, command= lambda: open_settings(root, evaluator))
 settings_button.place(relx=1.0, rely=0.0, anchor="ne", x=-20, y=10)
+# endregion
 
-# Tab 2
+# region Tab 2 Data result
 
 fin_data_label = ctk.CTkLabel(tab_2, text="Enter ticker and results will appear here", anchor="w", justify="left",)
 fin_data_label.pack()
+# endregion
 
-# Tab 3
+# region Tab 3 Scanner
 
 # Create the first select box (Location)
 location_menu = ctk.CTkOptionMenu(tab_3, variable=selected_location, values=locations)
@@ -228,6 +230,9 @@ save_to_csv_button = ctk.CTkButton(tab_3, text='Save result as CSV', command=ope
 
 # Initialize with the default location
 update_exchanges()
+
+# endregion
+
 
 # Run the application
 root.mainloop()
