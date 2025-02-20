@@ -56,7 +56,8 @@ class Evaluator:
                     'Dept': ticker.total_debt,
                     'Market Cap': ticker.market_cap,
                     'Sector': ticker.sector,
-                    'Summary': ticker.long_business_summary,     
+                    'Summary': ticker.long_business_summary,
+
                 })
                 print(f'Buy: {ticker.base.ticker} Sector: {ticker.sector}')
                 self.buying_opportunities.append(data)
