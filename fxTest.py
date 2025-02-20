@@ -51,10 +51,10 @@ def update_gui():
 
         usdjpy_change = -1 * usdjpy_change
         label =""
-        if usdjpy_change > difference:
+        if usdjpy_change < difference:
             label = "EUR"
             weak_count_eur = weak_count_eur+1
-        elif usdjpy_change < difference:
+        elif usdjpy_change > difference:
             label = 'USD'
             weak_count_usd = weak_count_usd+1
         else:
@@ -64,7 +64,14 @@ def update_gui():
         weakness_label.config(text=f"Current Weakness: {label}")
         weakness_counter_label.config(text=f"Weaknesses Counter\n    EUR | TIE | USD\n       {weak_count_eur}    |   {weak_count_tie}   |   { weak_count_usd}")
         time.sleep(20)
-
+def reset_counters():
+    global weak_count_eur
+    global weak_count_tie
+    global weak_count_usd
+    weak_count_eur = 0
+    weak_count_usd = 0
+    weak_count_tie = 0
+    weakness_counter_label.config(text=f"Weaknesses Counter\n    EUR | TIE | USD\n       {weak_count_eur}    |   {weak_count_tie}   |   { weak_count_usd}")
 # Create the main window
 root = tk.Tk()
 root.title("Forex Daily Change Monitor")
@@ -88,6 +95,8 @@ weakness_label.pack(pady=10)
 weakness_counter_label = ttk.Label(root, text="Weakness counter loading..", font=('Arial', 14))
 weakness_counter_label.pack(pady=10)
 
+weakness_counter_reset_btn = ttk.Button(root, text="Reset", command=lambda: reset_counters())
+weakness_counter_reset_btn.pack(pady=10)
 
 
 # Start the scraping thread
