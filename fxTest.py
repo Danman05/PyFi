@@ -1,3 +1,4 @@
+import datetime
 import requests
 from bs4 import BeautifulSoup
 import tkinter as tk
@@ -72,6 +73,7 @@ def reset_counters():
     weak_count_usd = 0
     weak_count_tie = 0
     weakness_counter_label.config(text=f"Weaknesses Counter\n    EUR | TIE | USD\n       {weak_count_eur}    |   {weak_count_tie}   |   { weak_count_usd}")
+    timestamp_start_label.config(text=f"{datetime.datetime.now().replace(microsecond=0)}")
 # Create the main window
 root = tk.Tk()
 root.title("Forex Daily Change Monitor")
@@ -97,6 +99,9 @@ weakness_counter_label.pack(pady=10)
 
 weakness_counter_reset_btn = ttk.Button(root, text="Reset", command=lambda: reset_counters())
 weakness_counter_reset_btn.pack(pady=10)
+
+timestamp_start_label = ttk.Label(root, text=f"{datetime.datetime.now().replace(microsecond=0)}")
+timestamp_start_label.pack(pady=10)
 
 
 # Start the scraping thread

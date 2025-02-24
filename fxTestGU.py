@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import ttk
 import threading
 import time
-
+import datetime
 
 weak_count_gbp = 0
 weak_count_usd = 0
@@ -73,6 +73,7 @@ def reset_counters():
     weak_count_usd = 0
     weak_count_tie = 0
     weakness_counter_label.config(text=f"Weaknesses Counter\n    GBP | TIE | USD\n       {weak_count_gbp}    |   {weak_count_tie}   |   { weak_count_usd}")
+    timestamp_start_label.config(text=f"{datetime.datetime.now().replace(microsecond=0)}")
 # Create the main window
 root = tk.Tk()
 root.title("Forex Daily Change Monitor")
@@ -99,7 +100,8 @@ weakness_counter_label.pack(pady=10)
 weakness_counter_reset_btn = ttk.Button(root, text="Reset", command=lambda: reset_counters())
 weakness_counter_reset_btn.pack(pady=10)
 
-
+timestamp_start_label = ttk.Label(root, text=f"{datetime.datetime.now().replace(microsecond=0)}")
+timestamp_start_label.pack(pady=10)
 
 # Start the scraping thread
 scraping_thread = threading.Thread(target=update_gui, daemon=True)
